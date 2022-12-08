@@ -66,6 +66,18 @@ app.get("/getAllUsers/", authenticateToken, (req, res) => {
   });
 });
 
+app.get("/getAllChapters/", authenticateToken, (req, res) => {
+  const servid = req.params.id;
+  //console.log(servid);
+  pool.query("SELECT * FROM chapters", [servid], (err, result) => {
+    if (err) console.log(err);
+    else {
+      console.log(result);
+      res.json(result);
+    }
+  });
+});
+
 app.get("/getChapters/:id", authenticateToken, (req, res) => {
   const servid = req.params.id;
   //console.log(servid);
@@ -97,6 +109,44 @@ app.post("/getLessons", authenticateToken, (req, res) => {
   );
 });
 
+app.post("/getLessonsAdmin", authenticateToken, (req, res) => {
+  const chapter = req.body.chapter;
+  pool.query(
+    "SELECT * FROM lessons WHERE lessonChapter = ?",
+    [chapter],
+    (err, result) => {
+      if (err) console.log(err);
+      else {
+        res.json(result);
+      }
+    }
+  );
+});
+
+app.post("/saveLessonsAdmin", authenticateToken, (req, res) => {
+  const { id, name, content } = req.body;
+  pool.query(
+    "UPDATE lessons SET lessonTitle = ?, content = ? WHERE id = ?",
+    [name, content, id],
+    (err, result) => {
+      if (err) console.log(err);
+      else {
+        res.json(result);
+      }
+    }
+  );
+});
+
+app.post("/deleteLessonsAdmin", authenticateToken, (req, res) => {
+  const id = req.body.id;
+  pool.query("DELETE FROM lessons WHERE id = ?", [id], (err, result) => {
+    if (err) console.log(err);
+    else {
+      res.json(result);
+    }
+  });
+});
+
 app.post("/addLessons", authenticateToken, (req, res) => {
   const {
     servid,
@@ -122,7 +172,7 @@ app.post("/addLessons", authenticateToken, (req, res) => {
     ca3,
   } = req.body;
   pool.query(
-    "INSERT INTO `lessons`(`servid`, `lessonNumber`, `content`, `lessonTitle`, `lessonChapter`, `hasQuiz`, `q1`, `q2`, `q3`, `a11`, `a12`, `a13`, `a21`, `a22`, `a23`, `a31`, `a32`, `a33`, `ca1`, `ca2`, `ca3`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+    "INSERT INTO `lessons`(`servid`, `lessonNumber`, `content`, `lessonTitle`, `lessonChapter`, `hasQuiz`, `q1`, `q2`, `q3`, `a11`, `a12`, `a13`, `a21`, `a22`, `a23`, `a31`, `a32`, `a33`, `ca1`, `ca2`, `ca3`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
     [
       servid,
       lessonNumber,
@@ -360,8 +410,6 @@ app.post("/servers", authenticateToken, (req, res) => {
 //créer une chaine nom de chaine, id user, id serveur, type,update la table serveur pour mettre à jour les chaines //fait
 app.post("/chanels", authenticateToken, (req, res) => {
   // nom,type,idserv
-  //verifier si l'utilisateur est bien le proprio du serveur
-  const userid = req.body.userid;
   const chanelName = req.body.name;
   const chanelType = req.body.type;
   const servid = req.body.servid;
